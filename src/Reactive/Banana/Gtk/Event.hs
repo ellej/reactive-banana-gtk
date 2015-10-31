@@ -43,12 +43,12 @@ signal1 name f = Signal $ \connectAfter object handler' ->
 
 -- Create an AddHandler from a Signal
 
-handler :: (Frameworks t, MonadIO m, GObjectClass object)
+handler :: (MonadIO m, GObjectClass object)
         => ((a -> m ()) -> callback) -- ^ A GTK event handler can receive multiple arguments, but the Reactive Banana
                                      -- handlers can't. This means the arguments have to be bundled or filtered.
         -> object                    -- ^ The widget.
         -> Signal object callback    -- ^ The signal.
-        -> Moment t (AddHandler a)   -- ^ The new 'AddHandler'.
+        -> MomentIO (AddHandler a)   -- ^ The new 'AddHandler'.
 handler bundleArgs widget sig = liftIO $ do
    (addHandler, runHandler) <- newAddHandler
    connectId <- on widget sig $ bundleArgs $ liftIO . runHandler
@@ -57,79 +57,79 @@ handler bundleArgs widget sig = liftIO $ do
       return (t >> signalDisconnect connectId)
 
 -- | Create a handler from a signal name for a signal with no parameters.
-handler0 :: (Frameworks t, GObjectClass object)
+handler0 :: GObjectClass object
          => object                   -- ^ The Widget.
          -> SignalName               -- ^ The name of the signal.
-         -> Moment t (AddHandler ()) -- ^ The new 'AddHandler'.
+         -> MomentIO (AddHandler ()) -- ^ The new 'AddHandler'.
 handler0 widget name = handler id widget (signal0 name)
 
 -- | Create a handler for a signal with no parameters.
-handlerS0 :: (Frameworks t, MonadIO m, GObjectClass object)
+handlerS0 :: (MonadIO m, GObjectClass object)
           => object                   -- ^ The widget.
           -> Signal object (m ())     -- ^ The signal.
-          -> Moment t (AddHandler ()) -- ^ The new 'AddHandler'.
+          -> MomentIO (AddHandler ()) -- ^ The new 'AddHandler'.
 handlerS0 = handler ($ ())
 
 -- | Create a handler for a signal with one parameter.
-handlerS1 :: (Frameworks t, MonadIO m, GObjectClass object)
+handlerS1 :: (MonadIO m, GObjectClass object)
           => object                    -- ^ The widget.
           -> Signal object (a -> m ()) -- ^ The signal.
-          -> Moment t (AddHandler a)   -- ^ The new 'AddHandler'.
+          -> MomentIO (AddHandler a)   -- ^ The new 'AddHandler'.
 handlerS1 = handler id
 
 -- Create an Event from an AddHandler
 
-event :: (Frameworks t, MonadIO m, GObjectClass object)
+event :: (MonadIO m, GObjectClass object)
       => ((a -> m ()) -> callback) -- ^ Bundle or filter the arguments.
       -> object                    -- ^ The widget.
       -> Signal object callback    -- ^ The signal.
-      -> Moment t (Event t a)      -- ^ The new 'Event'.
+      -> MomentIO (Event a)        -- ^ The new 'Event'.
 event bundleArgs widget sig = handler bundleArgs widget sig >>= fromAddHandler
 
-event0 :: (Frameworks t, GObjectClass object)
+event0 :: GObjectClass object
        => object                -- ^ The widget.
        -> SignalName            -- ^ The name of the signal.
-       -> Moment t (Event t ()) -- ^ The new 'Event'.
+       -> MomentIO (Event ())   -- ^ The new 'Event'.
 event0 widget name = handler0 widget name >>= fromAddHandler
 
-event0' :: (Frameworks t, GObjectClass object)
+event0' :: GObjectClass object
         => object                          -- ^ The widget.
         -> SignalName                      -- ^ The name of the signal.
         -> (AddHandler () -> AddHandler b) -- ^ Optionally map the AddHandler.
-        -> Moment t (Event t b) -- ^ The new 'Event'.
+        -> MomentIO (Event b) -- ^ The new 'Event'.
 event0' widget name f = handler0 widget name >>= fromAddHandler . f
 
-eventS0 :: (Frameworks t, MonadIO m, GObjectClass object)
+eventS0 :: (MonadIO m, GObjectClass object)
         => object                -- ^ The widget.
         -> Signal object (m ())  -- ^ The signal.
-        -> Moment t (Event t ()) -- ^ The new 'Event'.
+        -> MomentIO (Event ())   -- ^ The new 'Event'.
 eventS0 = event ($ ())
 
-eventS1 :: (Frameworks t, MonadIO m, GObjectClass object)
+eventS1 :: (MonadIO m, GObjectClass object)
         => object                    -- ^ The widget.
         -> Signal object (a -> m ()) -- ^ The signal.
-        -> Moment t (Event t a)      -- ^ The new 'Event'.
+        -> MomentIO (Event a)        -- ^ The new 'Event'.
 eventS1 = event id
 
-eventS2 :: (Frameworks t, MonadIO m, GObjectClass object)
+eventS2 :: (MonadIO m, GObjectClass object)
         => object                         -- ^ The widget.
         -> Signal object (a -> b -> m ()) -- ^ The signal.
-        -> Moment t (Event t (a, b))      -- ^ The new 'Event'.
+        -> MomentIO (Event (a, b))        -- ^ The new 'Event'.
 eventS2 = event curry
 
-eventM0 :: (Frameworks t, GObjectClass object)
+eventM0 :: GObjectClass object
         => object                        -- ^ The widget.
         -> Signal object (EventM a Bool) -- ^ The signal.
-        -> Moment t (Event t ())         -- ^ The new 'Event'.
+        -> MomentIO (Event ())           -- ^ The new 'Event'.
 eventM0 = event (propEvent . ($ ()))
 
 -- | EventM a Bool is a Reader containing a Ptr to the event value. Gtk2hs provides
 -- functions that convert that pointer to the actual type (:: EventM a b).
-eventM1 :: (Frameworks t, GObjectClass object)
+eventM1 :: GObjectClass object
         => object                        -- ^ The widget.
         -> Signal object (EventM a Bool) -- ^ The signal.
         -> EventM a b                    -- ^ Get the event arguments stored in the Reader.
-        -> Moment t (Event t b)          -- ^ The new 'Event'.
+        -> MomentIO (Event b)            -- ^ The new 'Event'.
 eventM1 widget sig value = event (propEvent . (value >>=)) widget sig
 
 -- Handling exceptions.
