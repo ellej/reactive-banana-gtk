@@ -1,2 +1,4 @@
 dist
 *.geany
+.cabal-sandbox
+cabal.sandbox.config

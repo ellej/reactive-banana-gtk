@@ -1,45 +1,18 @@
 
 module Reactive.Banana.Gtk.Event (
-   signal0, signal1,
    handler0,
    handlerS0, handlerS1,
-   event0, event0',
+   event0,
    eventS0, eventS1, eventS2,
-   eventM0, eventM1,
-   blockEvent
+   eventM0, eventM1
 ) where
 
 import System.Glib.Signals
 import System.Glib.GObject
-import System.Glib.GError (failOnGError)
-
 import Reactive.Banana
 import Reactive.Banana.Frameworks
 
-import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
-import Data.Typeable (Typeable)
-import Control.Exception (Exception)
-import Control.Exception.Lifted (throwIO, catch)
-
-import Foreign.Ptr (Ptr)
-
--- Redefine the type synonym here so we can lose the gtk2/gtk3 dependency.
-type EventM t = ReaderT (Ptr t) IO
-
--- Create a Signal (only needed if it doesn't exist yet)
-
-signal0 :: GObjectClass object
-        => SignalName                 -- ^ The name of the signal.
-        -> Signal object (() -> IO a) -- ^ The new 'Signal'.
-signal0 name = Signal $ \connectAfter object handler' ->
-   connectGeneric name connectAfter object (\_ -> failOnGError $ handler' ())
-
-signal1 :: GObjectClass object
-        => SignalName                -- ^ The name of the signal.
-        -> (s -> t)                  -- ^ Transform the orignal argument to something we can use.
-        -> Signal object (t -> IO a) -- ^ The new 'Signal'.
-signal1 name f = Signal $ \connectAfter object handler' ->
-   connectGeneric name connectAfter object (\_ p1 -> failOnGError $ handler' $ f p1)
+import Reactive.Banana.Gtk.Shared
 
 -- Create an AddHandler from a Signal
 
@@ -92,13 +65,6 @@ event0 :: GObjectClass object
        -> MomentIO (Event ())   -- ^ The new 'Event'.
 event0 widget name = handler0 widget name >>= fromAddHandler
 
-event0' :: GObjectClass object
-        => object                          -- ^ The widget.
-        -> SignalName                      -- ^ The name of the signal.
-        -> (AddHandler () -> AddHandler b) -- ^ Optionally map the AddHandler.
-        -> MomentIO (Event b) -- ^ The new 'Event'.
-event0' widget name f = handler0 widget name >>= fromAddHandler . f
-
 eventS0 :: (MonadIO m, GObjectClass object)
         => object                -- ^ The widget.
         -> Signal object (m ())  -- ^ The signal.
@@ -131,19 +97,3 @@ eventM1 :: GObjectClass object
         -> EventM a b                    -- ^ Get the event arguments stored in the Reader.
         -> MomentIO (Event b)            -- ^ The new 'Event'.
 eventM1 widget sig value = event (propEvent . (value >>=)) widget sig
-
--- Handling exceptions.
-
-data BlockEvent = BlockEvent deriving (Show, Typeable)
-instance Exception BlockEvent
-
--- | Try to handle an event. The event is propagated by default, unless a BlockEvent exception is thrown.
--- See 'blockEvent'.
-propEvent :: EventM any () -> EventM any Bool
-propEvent act = do
-   ptr <- ask
-   liftIO (runReaderT (False <$ act) ptr) `catch` \BlockEvent -> return True
-
--- | Stop the current event from propagating.
-blockEvent :: MonadIO m => m a
-blockEvent = liftIO $ throwIO BlockEvent
