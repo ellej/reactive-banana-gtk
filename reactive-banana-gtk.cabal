@@ -19,7 +19,9 @@ Library
                   transformers >= 0.4.2,
                   lifted-base >= 0.2.3.6
    exposed-modules: Reactive.Banana.Gtk
-   other-Modules: Reactive.Banana.Gtk.Event
+                    Reactive.Banana.Gtk.Event
+                    Reactive.Banana.Gtk.EventEx
+   -- other-Modules: Reactive.Banana.Gtk.Event
    build-tools: hsc2hs
    ghc-options: -Wall -O2 -funbox-strict-fields -fwarn-tabs
    default-language: Haskell2010
