@@ -1,0 +1,25 @@
+name:                reactive-banana-gtk
+version:             0.5
+github:              "ellej/reactive-banana-gtk"
+license:             BSD3
+author:              "Jelle Lingier"
+maintainer:          "jelle.lingier@gmail.com"
+copyright:           "2019 Jelle Lingier"
+
+extra-source-files:
+- README.adoc
+
+synopsis: Reactive Banana bindings for GTK2/GTK3.
+category: FRP
+
+description: Please see the README on GitHub at <https://github.com/ellej/reactive-banana-gtk#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- glib >= 0.13.2.1
+- reactive-banana >= 1
+- transformers >= 0.4.2
+- lifted-base >= 0.2.3.6
+
+library:
+  source-dirs: src

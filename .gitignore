@@ -1,4 +1,5 @@
-dist
-*.geany
-.cabal-sandbox
-cabal.sandbox.config
+.history/
+*.code-workspace
+
+.stack-work/
+#reactive-banana-gtk.cabal

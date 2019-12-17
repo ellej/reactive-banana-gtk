@@ -1,0 +1,8 @@
+resolver: lts-14.17
+packages:
+- .
+
+extra-deps:
+- glib-0.13.7.1@sha256:b517bbbc46f8bd72a8c97fb1d6769705a9b0d006f7cff8b3dc85948511817b11,3120
+- reactive-banana-1.2.1.0@sha256:af0a41dec95e1478acd5280f0fdde51afddf9fbfa4e0a4c226a2c6fa65702796,3975
+- gtk2hs-buildtools-0.13.5.4@sha256:0f18b0103fa7a3cbc28edc6a97bdaf08e1f9bd273ef26d2ad498630ec6d0ac9c,5288
