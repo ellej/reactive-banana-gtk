@@ -1,6 +1,4 @@
 
-{-# LANGUAGE TupleSections #-}
-
 module Reactive.Banana.Gtk.EventEx (
    handlerS0', handlerS1',
    eventS0', eventS1', eventS2',
